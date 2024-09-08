@@ -1,0 +1,20 @@
+name: 'Build Number Generator'
+description: 'Generates and increments build numbers based on an identifier.'
+author: 'Your Name'
+inputs:
+  token:
+    description: 'GitHub token with write access to the repository.'
+    required: true
+  branch:
+    description: 'Branch to use for the build number.'
+    required: false
+    default: 'build-numbers'
+  identifier:
+    description: 'Unique identifier for the build number.'
+    required: true
+outputs:
+  build-number:
+    description: 'The generated build number.'
+runs:
+  using: 'node16'
+  main: 'index.js'
