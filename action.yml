@@ -12,6 +12,10 @@ inputs:
   identifier:
     description: 'Unique identifier for the build number.'
     required: true
+  increment:
+    description: 'Increment the build number.'
+    required: false
+    default: 'true'
 outputs:
   build-number:
     description: 'The generated build number.'

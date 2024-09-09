@@ -16,6 +16,7 @@ projects or components.
 - `token` (required): A GitHub token with write access to the repository.
 - `branch` (optional): The branch where the build numbers are stored. Defaults to `build-numbers` if not specified.
 - `identifier` (required): A unique identifier for the build number. Each identifier maintains its own sequence of build numbers.
+- `increment` (optional): A boolean flag to control whether the build number should be incremented or just retrieved. Defaults to `true`.
 
 ## Outputs
 
@@ -48,7 +49,6 @@ jobs:
         id: generate
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: 'build-numbers'
           identifier: 'projectA'
 
       - name: Output Build Number (Output)
@@ -57,8 +57,20 @@ jobs:
       - name: Output Build Number (Environment)
         run: |
           echo "Build Number: ${{ env.BUILD_NUMBER }}"
-
 ```
+
+Detailed Configuration:
+
+````yaml
+      - name: Generate Build Number
+        uses: BetonQuest/build-number-generator@main
+        id: generate
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: 'build-numbers' 
+          identifier: 'projectA'
+          increment: true
+````
 
 ## Detailed Explanation
 ### 1. File Locking for Concurrency
