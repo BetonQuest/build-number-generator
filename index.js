@@ -10,12 +10,9 @@ const FILE_NAME = 'build_numbers.json';
 async function run() {
     let release;
     try {
-        // Lock the file to prevent concurrent access
-        release = await lockfile.lock(FILE_NAME);
-
         // Retrieve inputs
         const token = core.getInput('token', { required: true });
-        const branch = core.getInput('branch', { required: false}) || 'build-numbers';
+        const branch = core.getInput('branch', { required: false }) || 'build-numbers';
         const identifier = core.getInput('identifier', { required: true });
         const increment = core.getBooleanInput('increment', { required: false }) || true;
         core.info(`Checking out branch: ${branch}`);
@@ -36,14 +33,17 @@ async function run() {
         // Pull the latest changes
         await git.pull('origin', branch);
 
-        // Load or initialize the build numbers JSON file
-        let buildNumbers = {};
+        // Ensure the build_numbers.json file exists before attempting to lock it
         const filePath = path.join(process.cwd(), FILE_NAME);
-        if (fs.existsSync(filePath)) {
-            buildNumbers = await fs.readJson(filePath);
-        } else {
-            await fs.writeJson(filePath, buildNumbers, { spaces: 2 });
+        if (!fs.existsSync(filePath)) {
+            await fs.writeJson(filePath, {}); // Create an empty JSON file
         }
+
+        // Lock the file to prevent concurrent access
+        release = await lockfile.lock(filePath);
+
+        // Load the build numbers JSON file
+        let buildNumbers = await fs.readJson(filePath);
 
         // Initialize build number if it doesn't exist
         if (!buildNumbers[identifier]) {
@@ -76,6 +76,7 @@ async function run() {
         core.exportVariable('BUILD_NUMBER', buildNumbers[identifier]);
 
     } catch (error) {
+        core.error(`Specific error context: ${error.message}`);
         core.setFailed(`Action failed with error: ${error.message}`);
     } finally {
         // Always release the lock
