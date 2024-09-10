@@ -41,6 +41,8 @@ async function run() {
         const filePath = path.join(process.cwd(), FILE_NAME);
         if (fs.existsSync(filePath)) {
             buildNumbers = await fs.readJson(filePath);
+        } else {
+            await fs.writeJson(filePath, buildNumbers, { spaces: 2 });
         }
 
         // Initialize build number if it doesn't exist
@@ -74,7 +76,6 @@ async function run() {
         core.exportVariable('BUILD_NUMBER', buildNumbers[identifier]);
 
     } catch (error) {
-        core.error(`Specific error context: ${error.message}`);
         core.setFailed(`Action failed with error: ${error.message}`);
     } finally {
         // Always release the lock
