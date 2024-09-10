@@ -61,6 +61,10 @@ async function run() {
             // Write the updated build numbers back to the JSON file
             await fs.writeJson(filePath, buildNumbers, { spaces: 2 });
 
+            // Set the author identity for the commit
+            await git.addConfig('user.name', 'GitHub Action');
+            await git.addConfig('user.email', 'action@github.com');
+
             // Commit and push the changes
             await git.add(FILE_NAME);
             await git.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);

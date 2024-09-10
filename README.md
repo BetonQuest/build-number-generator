@@ -97,7 +97,7 @@ Each key corresponds to an identifier, and the value is the current build number
 
 ## Considerations
    
-- **GitHub Token**: Ensure that the GitHub token used has sufficient permissions to push to the specified branch.
+- **GitHub Token**: Ensure that the GitHub token used has sufficient permissions to push to the specified branch. ![img.png](img.png)
 - **File Locking**: The file locking mechanism is critical for ensuring that build numbers are not corrupted by concurrent writes.
 
 ## Contributing
