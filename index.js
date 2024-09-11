@@ -14,9 +14,9 @@ async function run() {
         const branch = core.getInput('branch', { required: false }) || 'build-numbers';
         const identifier = core.getInput('identifier', { required: true });
         const increment = core.getBooleanInput('increment', { required: false }) || true;
-        core.info(`Checking out branch: ${branch}`);
-        core.info(`Processing identifier: ${identifier}`);
-        core.info(`Increment flag is set to: ${increment}`);
+        core.info(`Using branch: ${branch}`);
+        core.info(`Using identifier: ${identifier}`);
+        core.info(`Increment flag: ${increment}`);
 
         const git = simpleGit();
         await setCredentials(git);
