@@ -22,7 +22,7 @@ async function run() {
         await setCredentials(git);
         await checkout(git, branch);
 
-        // Ensure the build_numbers.json file exists before attempting to lock ita nd pull again
+        // Ensure the build_numbers.json file exists before attempting to lock it and pull again
         const filePath = path.join(process.cwd(), FILE_NAME);
         release = await lockFile(filePath, git, branch);
 
@@ -54,6 +54,7 @@ async function setCredentials(git) {
 async function checkout(git, branch) {
     await git.checkout(branch).catch(async () => {
         await git.checkout(["--orphan", branch]);
+        await git.commit('Initialize branch');
         await git.push(["--set-upstream", "origin", branch]);
     });
 }
