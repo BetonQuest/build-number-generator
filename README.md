@@ -43,6 +43,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Generate Build Number
         uses: BetonQuest/build-number-generator@main
@@ -98,6 +100,7 @@ Each key corresponds to an identifier, and the value is the current build number
 ## Considerations
    
 - **GitHub Token**: Ensure that the GitHub token used has sufficient permissions to push to the specified branch. ![img.png](img.png)
+- **Checkout Action**: The action requires the `actions/checkout` to fetch all branches with the `fetch-depth: 0` option.
 - **File Locking**: The file locking mechanism is critical for ensuring that build numbers are not corrupted by concurrent writes.
 
 ## Contributing
