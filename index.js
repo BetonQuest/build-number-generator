@@ -25,8 +25,9 @@ async function run() {
 
         // Check out the branch
         await git.checkout(branch).catch(async () => {
-            // If the branch doesn't exist, create an empty branch
+            // If the branch doesn't exist, create an empty orphan branch
             await git.checkout(['--orphan', branch]);
+            await git.push(['--set-upstream', 'origin', branch]);
         });
 
         // Pull the latest changes
@@ -67,7 +68,7 @@ async function run() {
             // Commit and push the changes
             await git.add(FILE_NAME);
             await git.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);
-            await git.push(['--set-upstream', 'origin', branch]);
+            await git.push('origin', branch);
         } else {
             core.info(`Build number retrieval only, no increment performed.`);
         }
