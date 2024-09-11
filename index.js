@@ -79,7 +79,6 @@ async function run() {
         core.exportVariable('BUILD_NUMBER', buildNumbers[identifier]);
 
     } catch (error) {
-        core.error(`Specific error context: ${error.message}`);
         core.setFailed(`Action failed with error: ${error.message}`);
     } finally {
         // Always release the lock
