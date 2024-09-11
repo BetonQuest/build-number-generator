@@ -20,5 +20,5 @@ outputs:
   build-number:
     description: 'The generated build number.'
 runs:
-  using: 'node16'
+  using: 'node20'
   main: 'index.js'
