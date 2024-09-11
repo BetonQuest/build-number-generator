@@ -55,8 +55,6 @@ async function checkout(git, branch) {
     await git.checkout(branch).catch(async () => {
         await git.checkout(["--orphan", branch]);
         await git.rm(['-rf', '.']);
-        await git.commit('Initialize branch');
-        await git.push(["--set-upstream", "origin", branch]);
     });
 }
 
@@ -88,7 +86,7 @@ async function incrementBuildNumber(buildNumbers, identifier, filePath) {
 async function commitAndPush(git, identifier, buildNumbers, branch) {
     await git.add(FILE_NAME);
     await git.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);
-    await git.push("origin", branch);
+    await git.push(["--set-upstream", "origin", branch]);
 }
 
 function setOutput(buildNumber) {
