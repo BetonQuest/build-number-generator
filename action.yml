@@ -1,6 +1,6 @@
 name: 'Build Number Generator'
 description: 'Generates and increments build numbers based on an identifier.'
-author: 'Your Name'
+author: 'BetonQuest'
 inputs:
   token:
     description: 'GitHub token with write access to the repository.'

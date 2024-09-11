@@ -9,7 +9,7 @@ const FILE_NAME = 'build_numbers.json';
 run();
 
 async function run() {
-    let release;
+    let fileLock;
     try {
         const branch = core.getInput('branch', { required: false }) || 'build-numbers';
         const identifier = core.getInput('identifier', { required: true });
@@ -22,9 +22,8 @@ async function run() {
         await setCredentials(git);
         await checkout(git, branch);
 
-        // Ensure the build_numbers.json file exists before attempting to lock it and pull again
         const filePath = path.join(process.cwd(), FILE_NAME);
-        release = await lockFile(filePath, git, branch);
+        fileLock = await lockFile(filePath, git, branch);
 
         let buildNumbers = await fs.readJson(filePath);
         initializeBuildNumber(buildNumbers, identifier);
@@ -40,8 +39,8 @@ async function run() {
     } catch (error) {
         core.setFailed(`Action failed with error: ${error.message}`);
     } finally {
-        if (release) {
-            await release();
+        if (fileLock) {
+            await fileLock();
         }
     }
 }
@@ -55,6 +54,10 @@ async function checkout(git, branch) {
     await git.checkout(branch).catch(async () => {
         await git.checkout(["--orphan", branch]);
         await git.rm(['-rf', '.']);
+        await fs.writeJson(FILE_NAME, {});
+        await git.add(FILE_NAME);
+        await git.commit("Initial commit to initialize branch");
+        await git.push(["--set-upstream", "origin", branch]);
     });
 }
 
@@ -62,9 +65,9 @@ async function lockFile(filePath, git, branch) {
     if (!fs.existsSync(filePath)) {
         await fs.writeJson(filePath, {});
     }
-    let release = await lockfile.lock(filePath);
+    let fileLock = await lockfile.lock(filePath);
     await git.pull("origin", branch);
-    return release;
+    return fileLock;
 }
 
 function initializeBuildNumber(buildNumbers, identifier) {
@@ -86,7 +89,7 @@ async function incrementBuildNumber(buildNumbers, identifier, filePath) {
 async function commitAndPush(git, identifier, buildNumbers, branch) {
     await git.add(FILE_NAME);
     await git.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);
-    await git.push(["--set-upstream", "origin", branch]);
+    await git.push("origin", branch);
 }
 
 function setOutput(buildNumber) {
