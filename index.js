@@ -54,6 +54,7 @@ async function setCredentials(git) {
 async function checkout(git, branch) {
     await git.checkout(branch).catch(async () => {
         await git.checkout(["--orphan", branch]);
+        await git.rm(['-rf', '.']);
         await git.commit('Initialize branch');
         await git.push(["--set-upstream", "origin", branch]);
     });
