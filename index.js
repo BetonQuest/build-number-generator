@@ -3,12 +3,15 @@ const fs = require('fs-extra');
 const path = require('path');
 const simpleGit = require('simple-git');
 const lockfile = require('proper-lockfile');
+const os = require('os');
 
 const FILE_NAME = 'build_numbers.json';
+const WORKTREE_DIR = path.join(os.tmpdir(), 'build-numbers-worktree');
 
 run();
 
 async function run() {
+    const git = simpleGit();
     let fileLock;
     try {
         const branch = core.getInput('branch', { required: false }) || 'build-numbers';
@@ -18,11 +21,10 @@ async function run() {
         core.info(`Using identifier: ${identifier}`);
         core.info(`Increment flag: ${increment}`);
 
-        const git = simpleGit();
         await setCredentials(git);
-        await checkout(git, branch);
+        await setupWorktree(git, branch);
 
-        const filePath = path.join(process.cwd(), FILE_NAME);
+        const filePath = path.join(WORKTREE_DIR, FILE_NAME);
         fileLock = await lockFile(filePath, git, branch);
 
         let buildNumbers = await fs.readJson(filePath);
@@ -35,13 +37,14 @@ async function run() {
             core.info(`Build number retrieval only, no increment performed.`);
         }
 
-        setOutput(buildNumbers[identifier])
+        setOutput(buildNumbers[identifier]);
     } catch (error) {
         core.setFailed(`Action failed with error: ${error.message}`);
     } finally {
         if (fileLock) {
             await fileLock();
         }
+        await removeWorktree(git, branch);
     }
 }
 
@@ -50,14 +53,15 @@ async function setCredentials(git) {
     await git.addConfig("user.email", "action@github.com");
 }
 
-async function checkout(git, branch) {
-    await git.checkout(branch).catch(async () => {
-        await git.checkout(["--orphan", branch]);
-        await git.rm(['-rf', '.']);
-        await fs.writeJson(FILE_NAME, {});
-        await git.add(FILE_NAME);
-        await git.commit("Initial commit to initialize branch");
-        await git.push(["--set-upstream", "origin", branch]);
+async function setupWorktree(git, branch) {
+    await fs.ensureDir(WORKTREE_DIR);
+    await git.worktree(["add", WORKTREE_DIR, branch]).catch(async () => {
+        await git.worktree(["add", WORKTREE_DIR, "--orphan", branch]);
+        await fs.writeJson(path.join(WORKTREE_DIR, FILE_NAME), {});
+        const worktreeGit = simpleGit(WORKTREE_DIR);
+        await worktreeGit.add(FILE_NAME);
+        await worktreeGit.commit("Initial commit to initialize branch");
+        await worktreeGit.push(["--set-upstream", "origin", branch]);
     });
 }
 
@@ -66,7 +70,8 @@ async function lockFile(filePath, git, branch) {
         await fs.writeJson(filePath, {});
     }
     let fileLock = await lockfile.lock(filePath);
-    await git.pull("origin", branch);
+    const worktreeGit = simpleGit(WORKTREE_DIR);
+    await worktreeGit.pull("origin", branch);
     return fileLock;
 }
 
@@ -87,9 +92,15 @@ async function incrementBuildNumber(buildNumbers, identifier, filePath) {
 }
 
 async function commitAndPush(git, identifier, buildNumbers, branch) {
-    await git.add(FILE_NAME);
-    await git.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);
-    await git.push("origin", branch);
+    const worktreeGit = simpleGit(WORKTREE_DIR);
+    await worktreeGit.add(FILE_NAME);
+    await worktreeGit.commit(`Update build number for ${identifier} to ${buildNumbers[identifier]}`);
+    await worktreeGit.push("origin", branch);
+}
+
+async function removeWorktree(git, branch) {
+    await git.worktree(["remove", WORKTREE_DIR]);
+    await fs.remove(WORKTREE_DIR);
 }
 
 function setOutput(buildNumber) {
