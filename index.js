@@ -55,8 +55,8 @@ async function setCredentials(git) {
 
 async function setupWorktree(git, branch) {
     await fs.ensureDir(WORKTREE_DIR);
-    await git.worktree(["add", WORKTREE_DIR, branch]).catch(async () => {
-        await git.worktree(["add", WORKTREE_DIR, "--orphan", branch]);
+    await git.raw(['worktree', 'add', WORKTREE_DIR, branch]).catch(async () => {
+        await git.raw(['worktree', 'add', WORKTREE_DIR, '--orphan', branch]);
         await fs.writeJson(path.join(WORKTREE_DIR, FILE_NAME), {});
         const worktreeGit = simpleGit(WORKTREE_DIR);
         await worktreeGit.add(FILE_NAME);
@@ -66,9 +66,7 @@ async function setupWorktree(git, branch) {
 }
 
 async function lockFile(filePath, git, branch) {
-    if (!fs.existsSync(filePath)) {
-        await fs.writeJson(filePath, {});
-    }
+    await fs.ensureFile(filePath);
     let fileLock = await lockfile.lock(filePath);
     const worktreeGit = simpleGit(WORKTREE_DIR);
     await worktreeGit.pull("origin", branch);
@@ -99,7 +97,7 @@ async function commitAndPush(git, identifier, buildNumbers, branch) {
 }
 
 async function removeWorktree(git) {
-    await git.worktree(["remove", WORKTREE_DIR]);
+    await git.raw(['worktree', 'remove', WORKTREE_DIR]);
     await fs.remove(WORKTREE_DIR);
 }
 
