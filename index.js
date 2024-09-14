@@ -44,7 +44,7 @@ async function run() {
         if (fileLock) {
             await fileLock();
         }
-        await removeWorktree(git, branch);
+        await removeWorktree(git);
     }
 }
 
@@ -98,7 +98,7 @@ async function commitAndPush(git, identifier, buildNumbers, branch) {
     await worktreeGit.push("origin", branch);
 }
 
-async function removeWorktree(git, branch) {
+async function removeWorktree(git) {
     await git.worktree(["remove", WORKTREE_DIR]);
     await fs.remove(WORKTREE_DIR);
 }
