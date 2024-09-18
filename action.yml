@@ -1,4 +1,4 @@
-name: 'Build Number Generator'
+name: 'Build Number Generator Action'
 description: 'Generates and increments build numbers based on an identifier.'
 author: 'BetonQuest'
 inputs:
